@@ -1,12 +1,16 @@
 Hi, I am a RISC-V learner.
+
 During learning RISC-V, I found it's difflicult to lear RISC-V instruction.
+
 So, I write a parser in c.
+
 This code was written in C, and will print the RISC-V instruction function.
 
 Input shoud be hex format in 8 char.
 Output like this:
 
 ********** RISC-V Instruction Decode **********
+
  Please input Instruction: 00802303
 
  Your Instruction is : 0x00802303
