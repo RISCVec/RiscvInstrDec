@@ -2,92 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Instruction Defines
-// OP end: instruction should look up func3 or func7 seg
-// F3 end: instruction should look up func7 seg
-// other end: Good luck! instruction matched
-
-// opcode seg
-// use 8-bit unsigned char to store
-// MSB is useless
-#define LOAD_OP 0x03                // 0000011 lb lh lw ld lbu lhu lwu
-#define FENCE_OP 0x0f               // 0001111 fence fence.i
-#define ADD_SHIFT_LOGIC_IMM_OP 0x13 // 0010011 addi slli slti sltiu xori srli srai ori andi
-#define AUIPC_OP 0x17               // 0010111 auipc
-#define ADD_SHIFT_IMM_WORD_OP 0x1b  // 0011011 addiw slliw srliw sraiw
-#define STORE_OP 0x23               // 0100011 sb sh sw sd
-#define ADD_SHIFT_LOGIC_OP 0x33     // 0110011 add sub sli slt xor srl sra or and
-#define LUI 0x37                    // 0110111 lui
-#define ADD_SUB_SHIFT_WORD_OP 0x3b  // 0111011 addw subw sllw srlw sraw
-#define BRANCH_OP 0x63              // 1100011 beq bne blt bge bltu bgeu
-#define JALR_OP 0x67                // 1100111 jalr
-#define JAL 0x6F                    // 1101111 jal
-#define ECALL_BREAK_OP 0x73         // 1110011 ecall ebreak
-#define CSR_OP 0x73                 // 1110011 csrrw csrrs csrrc csrrwi csrrsi csrrci
-
-// fun3 seg
-// use 1-bit unsigned char to store
-// MSB 5-bit is useless
-// LOAD
-#define LB 0x0  // 000
-#define LH 0x1  // 001
-#define LW 0x2  // 010
-#define LD 0x3  // 011
-#define LBU 0x4 // 100
-#define LHU 0x5 // 101
-#define LWU 0x6 // 110
-// FENCE
-#define FENCE 0x0   // 000
-#define FENCE_I 0x1 // 001
-// ADD SUB SHIFT LOGIC IMM
-#define ADDI 0x0         // 000
-#define SLLI_F3 0x1      // 001
-#define SLTI 0x2         // 010
-#define SLTUI 0x3        // 011
-#define XORI 0x4         // 100
-#define SRLI_SRAI_F3 0x5 // 101
-#define ORI_F3 0x6       // 110
-#define ANDI 0x7         // 111
-// AND SHIFT WORD
-#define ADDIW 0x0          // 000
-#define SLLIW_F3 0x1       // 001
-#define SRLIW_SRAIW_F3 0x5 // 101
-// STORE
-#define SB 0x0 // 000
-#define SH 0x1 // 001
-#define SW 0x2 // 020
-#define SD 0x3 // 011
-// ADD SUB LOGIC
-#define ADD_SUB_F3 0x0 // 000
-#define SLL_F3 0x1     // 001
-#define SLT_F3 0x2     // 010
-#define SLTU_F3 0x3    // 011
-#define XOR_F3 0x4     // 100
-#define SRL_SRA_F3 0x5 // 101
-#define OR_F3 0x6      // 110
-#define AND_F3 0x7     // 111
-// ADD SUB SHIFT WORD
-#define ADDW_SUBW_F3 0x0 // 000
-#define SLLW_F3 0x1      // 001
-#define SRLW_SRAW_F3 0x5 // 101
-// BRANCH
-#define BEQ 0x0  // 000
-#define BNE 0x1  // 001
-#define BLT 0x4  // 100
-#define BGE 0x5  // 101
-#define BLTU 0x6 // 110
-#define BGEU 0x7 // 111
-// JALR
-#define JALR 0x0 // 000
-// ECALL EBREAK
-#define ECALL_EBREAK_F3 0x0 // 000
-// CSR
-#define CSRRW 0x1  // 001
-#define CSRRS 0x2  // 010
-#define CSRRC 0x3  // 011
-#define CSRRWI 0x5 // 101
-#define CSRRSI 0x6 // 110
-#define CSRRCI 0x7 // 111
+#include "RiscvInstrDefs.h"
 
 // Print Binary Style Instruction
 void print_binary(unsigned int n)
@@ -109,24 +24,8 @@ void print_binary(unsigned int n)
    printf("\n");
 }
 
-// Instruction struct
-struct Instruction
-{
-   unsigned char func7;
-   unsigned char rs2;
-   unsigned char rs1;
-   unsigned char func3;
-   unsigned char rd;
-   unsigned char opcode;
-   unsigned int imm_i; // use low 12-bit
-   unsigned int imm_s; // use low 12-bit
-   unsigned int imm_b; // use low 12-bit, lsb is 0
-   unsigned int imm_u; // use high 21-bit
-   unsigned int imm_j; // use low 21-bit, lsb is 0
-};
-
 // Parse Instruction to Instruction struct
-void parse_instr_to_struct(unsigned int instr, struct Instruction *struInstr)
+void parse_instr_to_struct(unsigned int instr, StruInstr *struInstr)
 {
 
    // opcode, only save low 7-bit, convert to unsigned char, MSB is useless.
@@ -151,11 +50,27 @@ void parse_instr_to_struct(unsigned int instr, struct Instruction *struInstr)
    struInstr->imm_i = (unsigned int)(instr >> 20);
    // imm_s, shift right 20-bit (discard opcode, rd, func3, rs1) and only save 20-bit
    // convert to unsigned int, MSB 12-bit is useless.
-   struInstr->imm_s = (unsigned int)(((instr >> 20) & 0x0003f800) + ((instr >> 7) & 0x0000001f));
+   struInstr->imm_s = (unsigned int)(((instr >> 20) & 0x00000fe0) + ((instr >> 7) & 0x0000001f));
+   // imm_b, instr 31, 7, 30-25, 11-8 bit with sign bit extention
+   // convert to unsigned int, LSB is 0,
+   struInstr->imm_b = (unsigned int)(((instr >> 29) & 0x00000800) + ((instr << 4) & 0x00000400) + ((instr >> 20) & 0x000007e0) + ((instr >> 7) & 0x0000001e));
+   if ((instr >> 31) == 1)
+      struInstr->imm_b += 0xffffe000; // sign bit extention
+   // imm_j, instr 31, 19-12, 20, 30-21 bit with sign bit extention
+   // convert to unsigned int, LSB is 0,
+   struInstr->imm_j = (unsigned int)(((instr >> 12) & 0x00080000) + ((instr) & 0x00007800) + ((instr >> 9) & 0x00000400) + ((instr >> 20) & 0x000007fe));
+   if ((instr >> 31) == 1)
+      struInstr->imm_j += 0xffe00000; // sign bit extention
+   // imm_u, instr 31-12 bit, with low 12-bit set to 0
+   // convert to unsigned int
+   struInstr->imm_u = (unsigned int)(instr & 0xfffff000);
+   // imm_z, instr 19-15 bit, with high 27-bit set to 0
+   // convert to unsigned int
+   struInstr->imm_z = (unsigned int)((instr >> 15) & 0x0000001f);
 }
 
 // base on RISC-V instruction struct, parse instruction option.
-void parse_instr_struct(struct Instruction struInstr)
+void parse_instr_struct(StruInstr struInstr)
 {
    // opcode
    switch (struInstr.opcode)
@@ -197,8 +112,9 @@ void parse_instr_struct(struct Instruction struInstr)
       printf(" Function: x[%d] = M[x[%d] + sext(%d)]\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
       break;
    }
+   // LOAD_OP end
 
-      // STORE opcode matched, look at func3
+   // STORE opcode matched, look at func3
    case STORE_OP:
    {
       // func3 look up
@@ -225,17 +141,117 @@ void parse_instr_struct(struct Instruction struInstr)
       printf(" Function: M[x[%d] + sext(%d)] = x[%d]\n", struInstr.rs1, struInstr.imm_s, struInstr.rs2);
       break;
    }
+   // STORE_OP end
+
    // ADD SHIFT LOGIC opcode mached, look at func3
    case ADD_SHIFT_LOGIC_OP:
    {
-      // func3 look up
+      parse_asl_f3f7(struInstr);
+      break;
+   }
+      // ADD_SHIFT_LOGIC_OP end
+
+   case ADD_SHIFT_LOGIC_IMM_OP:
+   {
+      parse_asli_f3f7(struInstr);
+      break;
+   }
+      // ADD_SHIFT_LOGIC_IMM_OP end
+
+   case BRANCH_OP:
+   {
       switch (struInstr.func3)
       {
-         // ADD SUB matched, look at func7
+         case BEQ:
+         {
+            printf(" OPCODE : BEQ\n");         
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: if(x[%d] == x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            break;
+         }
+         case BNE:
+         {
+            printf(" OPCODE : BNE\n");         
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: if(x[%d] != x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            break;
+         }
+         case BLT:
+         {
+            printf(" OPCODE : BLT\n");         
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: if(x[%d] < x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            break;
+         }
+         case BGE:
+         {
+            printf(" OPCODE : BLT\n");         
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: if(x[%d] >= x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            break;
+         }
+         case BLTU:
+         {
+            printf(" OPCODE : BLT\n");         
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: if(x[%d] < x[%d]) PC += %d zero-extends\n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            break;
+         }
+         case BGEU:
+         {
+            printf(" OPCODE : BLT\n");         
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: if(x[%d] >= x[%d]) PC >= %d zero-extends\n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            break;
+         }
+         default:
+            break;
+      }
+      break;
+   }
+   // BRANCH_OP end
+
+   case JAL:
+   {
+      printf(" OPCODE : JAL\n");         
+      printf(" imm_i : %d\n", struInstr.imm_i);
+      printf(" Function: x[%d] = PC + 4, PC += %d\n", struInstr.rd, struInstr.imm_i);
+      break;
+   }
+
+   case JALR:
+   {
+      printf(" OPCODE : JALR\n");         
+      printf(" RS1   : %d\n", struInstr.rs1);
+      printf(" imm_i : %d\n", struInstr.imm_i);
+      printf(" Function: x[%d] = PC + 4, PC = x[%d] + %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+      break;
+   }
+
+   default: break;
+   }
+}
+// parse Add Shift Logic func3 and func7
+void parse_asl_f3f7(StruInstr struInstr)
+{
+   // opcode is ADD_SHIFT_LOGIC_OP
+   switch (struInstr.func3)
+   {
       case ADD_SUB_F3:
       {
-         // func7
-         if (struInstr.func7 == 0x00)
+         if (struInstr.func7 == ADD)
          {
             printf(" OPCODE : ADD\n");
             printf(" RD : %d\n", struInstr.rd);
@@ -243,7 +259,7 @@ void parse_instr_struct(struct Instruction struInstr)
             printf(" RS2   : %d\n", struInstr.rs2);
             printf(" Function: x[%d] = x[%d] + x[%d] \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
          }
-         else if (struInstr.func7 == 0x20)
+         else if(struInstr.func7 == SUB)
          {
             printf(" OPCODE : SUB\n");
             printf(" RD : %d\n", struInstr.rd);
@@ -251,25 +267,205 @@ void parse_instr_struct(struct Instruction struInstr)
             printf(" RS2   : %d\n", struInstr.rs2);
             printf(" Function: x[%d] = x[%d] - x[%d] \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
          }
+         
+         break;
       }
-      break;
-
-      case SH:
-         printf(" OPCODE : SH\n");
+      // ADD_SUB_F3 end
+      case XOR_F3:
+      {
+         if (struInstr.func7 == XOR)
+         {
+            printf(" OPCODE : XOR\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = x[%d] ^ x[%d] \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
          break;
-      case SW:
-         printf(" OPCODE : SW\n");
+      }
+      // XOR_F3 end
+      case OR_F3:
+      {
+         if (struInstr.func7 == OR)
+         {
+            printf(" OPCODE : OR\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = x[%d] | x[%d] \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
          break;
-      case SD:
-         printf(" OPCODE : SD\n");
+      }
+      // OR_F3 end
+      case AND_F3:
+      {
+         if (struInstr.func7 == AND)
+         {
+            printf(" OPCODE : AND\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = x[%d] & x[%d] \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
          break;
+      }
+      // AND_F3 end
+      case SLL_F3:
+      {
+         if (struInstr.func7 == SLL)
+         {
+            printf(" OPCODE : SLL\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = x[%d] << x[%d] \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
+         break;
+      }
+      // SLL_F3 end
+      case SRL_SRA_F3:
+      {
+         if (struInstr.func7 == SRL)
+         {
+            printf(" OPCODE : SRL\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = x[%d] >> x[%d] \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
+         else if (struInstr.func7 == SRA)
+         {
+            printf(" OPCODE : SRA\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = x[%d] >> x[%d] msb-extends\n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
+         break;
+      }
+      // SRL_SRA_F3 end
+      case SLT_F3:
+      {
+         if (struInstr.func7 == SLT)
+         {
+            printf(" OPCODE : SLT\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = (x[%d] < x[%d]) ? 1 : 0 \n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
+         break;
+      }
+      // SLT_F3 end
+      case SLTU_F3:
+      {
+         if (struInstr.func7 == SLTU)
+         {
+            printf(" OPCODE : SLT\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" RS2   : %d\n", struInstr.rs2);
+            printf(" Function: x[%d] = (x[%d] < x[%d]) ? 1 : 0 zero-extends\n", struInstr.rd, struInstr.rs1, struInstr.rs2);
+         }
+         break;
+      }
+      // SLTU_F3 end
       default:
          break;
-      }
-
-      break;
    }
-   default:
-      break;
+}
+
+void parse_asli_f3f7(StruInstr struInstr)
+{
+   switch (struInstr.func3)
+   {
+      case ADDI:
+      {
+         printf(" OPCODE : ADDI\n");
+         printf(" RD : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = x[%d] + %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         break;
+      }
+      case XORI:
+      {
+         printf(" OPCODE : XORI\n");
+         printf(" RD : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = x[%d] ^ %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         break;
+      }
+      case ORI:
+      {
+         printf(" OPCODE : ORI\n");
+         printf(" RD : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = x[%d] | %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         break;
+      }
+      case ANDI:
+      {
+         printf(" OPCODE : ANDI\n");
+         printf(" RD : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = x[%d] & %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         break;
+      }
+      case SLLI_F3:
+      {
+         if (struInstr.func7 == SLLI)
+         {
+            printf(" OPCODE : SLLI\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: x[%d] = x[%d] << %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         }
+         break;
+      }
+      case SRLI_SRAI_F3:
+      {
+         if (struInstr.func7 == SRLI)
+         {
+            printf(" OPCODE : SRLI\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: x[%d] = x[%d] >> %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         }
+         else if (struInstr.func7 == SRAI)
+         {
+            printf(" OPCODE : SRAI\n");
+            printf(" RD : %d\n", struInstr.rd);
+            printf(" RS1   : %d\n", struInstr.rs1);
+            printf(" imm_i : %d\n", struInstr.imm_i);
+            printf(" Function: x[%d] = x[%d] >> %d msb-extends\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         }
+         break;
+      }
+      case SLTI:
+      {
+         printf(" OPCODE : SLTI\n");
+         printf(" RD : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = (x[%d] < %d) ? 1 : 0 \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         break;
+      }
+      case SLTIU:
+      {
+         printf(" OPCODE : SLTIU\n");
+         printf(" RD : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = (x[%d] < %d) ? 1 : 0 msb-extends\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         break;
+      }
+      default:
+         break;
    }
 }
