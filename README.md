@@ -32,3 +32,6 @@ Bad news is I only implemetnt LW and SW instruction parsing right now.
 But good news is I promise to finish it later.
 
 If you have any good idea about it, please mail me.
+
+2024-04-12
+finish load/store add sub logic branch jal jalr
