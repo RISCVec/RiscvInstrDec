@@ -53,7 +53,7 @@ void parse_instr_to_struct(unsigned int instr, StruInstr *struInstr)
    struInstr->imm_s = (unsigned int)(((instr >> 20) & 0x00000fe0) + ((instr >> 7) & 0x0000001f));
    // imm_b, instr 31, 7, 30-25, 11-8 bit with sign bit extention
    // convert to unsigned int, LSB is 0,
-   struInstr->imm_b = (unsigned int)(((instr >> 29) & 0x00000800) + ((instr << 4) & 0x00000400) + ((instr >> 20) & 0x000007e0) + ((instr >> 7) & 0x0000001e));
+   struInstr->imm_b = (unsigned int)(((instr >> 29) & 0x00001000) + ((instr << 4) & 0x00000800) + ((instr >> 20) & 0x000007e0) + ((instr >> 7) & 0x0000001e));
    if ((instr >> 31) == 1)
       struInstr->imm_b += 0xffffe000; // sign bit extention
    // imm_j, instr 31, 19-12, 20, 30-21 bit with sign bit extention
@@ -167,8 +167,8 @@ void parse_instr_struct(StruInstr struInstr)
             printf(" OPCODE : BEQ\n");         
             printf(" RS1   : %d\n", struInstr.rs1);
             printf(" RS2   : %d\n", struInstr.rs2);
-            printf(" imm_i : %d\n", struInstr.imm_i);
-            printf(" Function: if(x[%d] == x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            printf(" imm_b : %d\n", struInstr.imm_b);
+            printf(" Function: if(x[%d] == x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_b);
             break;
          }
          case BNE:
@@ -176,8 +176,8 @@ void parse_instr_struct(StruInstr struInstr)
             printf(" OPCODE : BNE\n");         
             printf(" RS1   : %d\n", struInstr.rs1);
             printf(" RS2   : %d\n", struInstr.rs2);
-            printf(" imm_i : %d\n", struInstr.imm_i);
-            printf(" Function: if(x[%d] != x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            printf(" imm_b : %d\n", struInstr.imm_b);
+            printf(" Function: if(x[%d] != x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_b);
             break;
          }
          case BLT:
@@ -185,8 +185,8 @@ void parse_instr_struct(StruInstr struInstr)
             printf(" OPCODE : BLT\n");         
             printf(" RS1   : %d\n", struInstr.rs1);
             printf(" RS2   : %d\n", struInstr.rs2);
-            printf(" imm_i : %d\n", struInstr.imm_i);
-            printf(" Function: if(x[%d] < x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            printf(" imm_b : %d\n", struInstr.imm_b);
+            printf(" Function: if(x[%d] < x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_b);
             break;
          }
          case BGE:
@@ -194,8 +194,8 @@ void parse_instr_struct(StruInstr struInstr)
             printf(" OPCODE : BLT\n");         
             printf(" RS1   : %d\n", struInstr.rs1);
             printf(" RS2   : %d\n", struInstr.rs2);
-            printf(" imm_i : %d\n", struInstr.imm_i);
-            printf(" Function: if(x[%d] >= x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            printf(" imm_b : %d\n", struInstr.imm_b);
+            printf(" Function: if(x[%d] >= x[%d]) PC += %d \n", struInstr.rs1, struInstr.rs2, struInstr.imm_b);
             break;
          }
          case BLTU:
@@ -203,8 +203,8 @@ void parse_instr_struct(StruInstr struInstr)
             printf(" OPCODE : BLT\n");         
             printf(" RS1   : %d\n", struInstr.rs1);
             printf(" RS2   : %d\n", struInstr.rs2);
-            printf(" imm_i : %d\n", struInstr.imm_i);
-            printf(" Function: if(x[%d] < x[%d]) PC += %d zero-extends\n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            printf(" imm_b : %d\n", struInstr.imm_b);
+            printf(" Function: if(x[%d] < x[%d]) PC += %d zero-extends\n", struInstr.rs1, struInstr.rs2, struInstr.imm_b);
             break;
          }
          case BGEU:
@@ -212,8 +212,8 @@ void parse_instr_struct(StruInstr struInstr)
             printf(" OPCODE : BLT\n");         
             printf(" RS1   : %d\n", struInstr.rs1);
             printf(" RS2   : %d\n", struInstr.rs2);
-            printf(" imm_i : %d\n", struInstr.imm_i);
-            printf(" Function: if(x[%d] >= x[%d]) PC >= %d zero-extends\n", struInstr.rs1, struInstr.rs2, struInstr.imm_i);
+            printf(" imm_b : %d\n", struInstr.imm_b);
+            printf(" Function: if(x[%d] >= x[%d]) PC >= %d zero-extends\n", struInstr.rs1, struInstr.rs2, struInstr.imm_b);
             break;
          }
          default:
@@ -226,8 +226,8 @@ void parse_instr_struct(StruInstr struInstr)
    case JAL:
    {
       printf(" OPCODE : JAL\n");         
-      printf(" imm_i : %d\n", struInstr.imm_i);
-      printf(" Function: x[%d] = PC + 4, PC += %d\n", struInstr.rd, struInstr.imm_i);
+      printf(" imm_j : %d\n", struInstr.imm_j);
+      printf(" Function: x[%d] = PC + 4, PC += %d\n", struInstr.rd, struInstr.imm_j);
       break;
    }
 
@@ -235,8 +235,8 @@ void parse_instr_struct(StruInstr struInstr)
    {
       printf(" OPCODE : JALR\n");         
       printf(" RS1   : %d\n", struInstr.rs1);
-      printf(" imm_i : %d\n", struInstr.imm_i);
-      printf(" Function: x[%d] = PC + 4, PC = x[%d] + %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+      printf(" imm_j : %d\n", struInstr.imm_j);
+      printf(" Function: x[%d] = PC + 4, PC = x[%d] + %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_j);
       break;
    }
 
