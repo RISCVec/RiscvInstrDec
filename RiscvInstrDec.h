@@ -239,6 +239,14 @@ void parse_instr_struct(StruInstr struInstr)
       printf(" Function: x[%d] = PC + 4, PC = x[%d] + %d \n", struInstr.rd, struInstr.rs1, struInstr.imm_j);
       break;
    }
+   case LUI:
+   {
+      printf(" OPCODE : LUI\n");         
+      printf(" RD   : %d\n", struInstr.rd);
+      printf(" imm_u : 0x%x\n", struInstr.imm_u);
+      printf(" Function: x[%d] = 0x%x \n", struInstr.rd, struInstr.imm_u);
+      break;
+   }
 
    default: break;
    }
