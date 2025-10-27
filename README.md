@@ -31,3 +31,6 @@ If you have any good idea about it, please mail me.
 
 2024-04-12
 finish load/store add sub logic branch jal jalr
+
+2025-10-27
+add LUI instruction decode
