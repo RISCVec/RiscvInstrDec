@@ -84,32 +84,58 @@ void parse_instr_struct(StruInstr struInstr)
       {
       case LB:
          printf(" OPCODE : LB\n");
+         printf(" RD    : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = M[x[%d] + sext(%d)][0:7]\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       case LH:
          printf(" OPCODE : LH\n");
+         printf(" RD    : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = M[x[%d] + sext(%d)][0:15]\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       case LW:
          printf(" OPCODE : LW\n");
+         printf(" RD    : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = M[x[%d] + sext(%d)][0:31]\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       case LD:
          printf(" OPCODE : LD\n");
+         printf(" RD    : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = M[x[%d] + sext(%d)]\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       case LBU:
          printf(" OPCODE : LBU\n");
+         printf(" RD    : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = M[x[%d] + sext(%d)][0:7], zero-extends\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       case LHU:
          printf(" OPCODE : LHU\n");
+         printf(" RD    : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = M[x[%d] + sext(%d)][0:15], zero-extends\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       case LWU:
          printf(" OPCODE : LWU\n");
+         printf(" RD    : %d\n", struInstr.rd);
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" imm_i : %d\n", struInstr.imm_i);
+         printf(" Function: x[%d] = M[x[%d] + sext(%d)][0:31], zero-extends\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       default:
+         printf(" Error Instruction Format!!!");
          break;
       }
-      printf(" RD    : %d\n", struInstr.rd);
-      printf(" RS1   : %d\n", struInstr.rs1);
-      printf(" imm_i : %d\n", struInstr.imm_i);
-      printf(" Function: x[%d] = M[x[%d] + sext(%d)]\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+
       break;
    }
    // LOAD_OP end
@@ -122,23 +148,37 @@ void parse_instr_struct(StruInstr struInstr)
       {
       case SB:
          printf(" OPCODE : SB\n");
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" RS2   : %d\n", struInstr.rs2);
+         printf(" imm_s : %d\n", struInstr.imm_s);
+         printf(" Function: M[x[%d] + sext(%d)][0:7] = x[%d][0:7]\n", struInstr.rs1, struInstr.imm_s, struInstr.rs2);
          break;
       case SH:
          printf(" OPCODE : SH\n");
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" RS2   : %d\n", struInstr.rs2);
+         printf(" imm_s : %d\n", struInstr.imm_s);
+         printf(" Function: M[x[%d] + sext(%d)][0:15] = x[%d][0:15]\n", struInstr.rs1, struInstr.imm_s, struInstr.rs2);
          break;
       case SW:
          printf(" OPCODE : SW\n");
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" RS2   : %d\n", struInstr.rs2);
+         printf(" imm_s : %d\n", struInstr.imm_s);
+         printf(" Function: M[x[%d] + sext(%d)][0:31] = x[%d][0:31]\n", struInstr.rs1, struInstr.imm_s, struInstr.rs2);
          break;
       case SD:
          printf(" OPCODE : SD\n");
+         printf(" RS1   : %d\n", struInstr.rs1);
+         printf(" RS2   : %d\n", struInstr.rs2);
+         printf(" imm_s : %d\n", struInstr.imm_s);
+         printf(" Function: M[x[%d] + sext(%d)] = x[%d]\n", struInstr.rs1, struInstr.imm_s, struInstr.rs2);
          break;
       default:
+         printf(" Error Instruction Format!!!");
          break;
       }
-      printf(" RS1   : %d\n", struInstr.rs1);
-      printf(" RS2   : %d\n", struInstr.rs2);
-      printf(" imm_s : %d\n", struInstr.imm_s);
-      printf(" Function: M[x[%d] + sext(%d)] = x[%d]\n", struInstr.rs1, struInstr.imm_s, struInstr.rs2);
+      
       break;
    }
    // STORE_OP end
@@ -217,6 +257,7 @@ void parse_instr_struct(StruInstr struInstr)
             break;
          }
          default:
+            printf(" Error Instruction Format!!!");
             break;
       }
       break;
@@ -231,8 +272,13 @@ void parse_instr_struct(StruInstr struInstr)
       break;
    }
 
-   case JALR:
+   case JALR_OP:
    {
+      if(struInstr.func3 != JALR)
+      {
+         printf(" Error Instruction Format!!!\n");
+         break;
+      }
       printf(" OPCODE : JALR\n");         
       printf(" RS1   : %d\n", struInstr.rs1);
       printf(" imm_j : %d\n", struInstr.imm_j);
@@ -244,10 +290,28 @@ void parse_instr_struct(StruInstr struInstr)
    {
       printf(" OPCODE: LUI\n");
       printf(" RD   : %d\n", struInstr.rd);
-      printf(" imm_u: %d\n", struInstr.imm_u >> 12);
-      printf(" Function: x[%d] = %d\n", struInstr.rd, struInstr.imm_u);
+      printf(" imm_u: %u\n", struInstr.imm_u);
+      printf(" Function: x[%d] = %u\n", struInstr.rd, struInstr.imm_u);
+      break;
    }
-   default: break;
+
+   case AUIPC:
+   {
+      printf(" OPCODE: AUIPC\n");
+      printf(" RD   : %d\n", struInstr.rd);
+      printf(" imm_u: %u\n", struInstr.imm_u);
+      printf(" Function: x[%d] = PC + %u\n", struInstr.rd, struInstr.imm_u);
+      break;
+   }
+
+   case ECALL_BREAK_OP:
+   {
+      parse_ebec_f3f7(struInstr);
+      break;
+   }
+   default: 
+      printf(" Error Instruction Format!!!\n");
+      break;
    }
 }
 // parse Add Shift Logic func3 and func7
@@ -378,6 +442,7 @@ void parse_asl_f3f7(StruInstr struInstr)
       }
       // SLTU_F3 end
       default:
+         printf(" Error Instruction Format!!!\n");
          break;
    }
 }
@@ -469,10 +534,38 @@ void parse_asli_f3f7(StruInstr struInstr)
          printf(" RD : %d\n", struInstr.rd);
          printf(" RS1   : %d\n", struInstr.rs1);
          printf(" imm_i : %d\n", struInstr.imm_i);
-         printf(" Function: x[%d] = (x[%d] < %d) ? 1 : 0 msb-extends\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
+         printf(" Function: x[%d] = (x[%d] < %d) ? 1 : 0 zero-extends\n", struInstr.rd, struInstr.rs1, struInstr.imm_i);
          break;
       }
       default:
+         printf(" Error Instruction Format!!!\n");
          break;
+   } // end switch
+}
+
+void parse_ebec_f3f7(StruInstr struInstr)
+{
+   if(struInstr.func3 != 0x0)
+      printf(" Error Instruction Format!!!\n");
+   else
+   {
+      switch(struInstr.func7)
+      {
+         case ECALL:
+         {
+            printf(" OPCODE : ECALL\n");
+            printf(" Transfer control to OS.\n");
+            break;
+         }
+         case EBREAK:
+         {
+            printf(" OPCODE : EBREAK\n");
+            printf(" Transfer control to debugger.\n");
+            break;
+         }
+         default:
+            printf(" Error Instruction Format!!!");
+            break;
+      }
    }
 }
