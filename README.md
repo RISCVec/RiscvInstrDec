@@ -34,3 +34,6 @@ finish load/store add sub logic branch jal jalr
 
 2025-10-27
 add LUI instruction decode
+
+2025-10-31
+finish RV32I decode
