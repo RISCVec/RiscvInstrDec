@@ -8,7 +8,7 @@
 // Print Binary Style Instruction
 void print_binary( uint32_t n )
 {
-   for ( uint8_t i = sizeof( n ) * 8 - 1; i >= 0; i-- )
+   for ( int8_t i = sizeof( n ) * 8 - 1; i >= 0; i-- )
    {
       switch ( i )
       {
